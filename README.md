@@ -9,27 +9,7 @@ The GIFT Data Package includes multiple directories, each containing configurati
 
 ## Folder Structure
 
-### 1. `GIFT_adaptive_sampling_real/`
-
-**Purpose:** Adaptive sampling with active learning using real GIFT experimental data
-
-This directory contains all the files needed to run the Conditional Diffusion Model (CDM) with adaptive sampling in the active learning loop to solve the inverse problem using **real experimental data** from the GIFT project.
-
-**Key Files:**
-- `CDM_Simple_WSSE_real_Cond.py` - Main script for conditional diffusion model with real data
-- `run_GIFT_real.slurm` - SLURM submission script for HPC execution
-- `gift_fulltest.in` - PFLOTRAN configuration file
-- `gift_fulltest_dbase.h5` - PFLOTRAN database template
-- `*.npy` - Observed data files (e.g., `observed_fluid_EC.npy`, `correct_ertd_obs.npy`)
-- `soil_compressibility.txt` - Soil parameter data
-
-**Output Directories:**
-- `GIFT_CDM_Results/` - Model results and sampled parameters at each stage
-- `Inverted_field_simulations/` - Simulation results from inverted parameters
-- `pflotran_input_files/` - Generated PFLOTRAN input configurations
-- `pflotran_runs/` - PFLOTRAN simulation outputs
-
-### 2. `GIFT_adaptive_sampling_synthetic/`
+### `GIFT_adaptive_sampling_synthetic/`
 
 **Purpose:** Adaptive sampling with active learning using synthetic simulated data
 
@@ -45,38 +25,6 @@ Contains all the files needed to run the CDM with adaptive sampling in the activ
 - `GIFT_CDM_Results/` - Model results and sampled parameters
 - `Inverted_field_simulations/` - Inversion results
 - `pflotran_input_files/` - Generated input configurations
-
-### 3. `GIFT_random_sampling_synthetic/`
-
-**Purpose:** Active learning with random sampling augmentation using synthetic data
-
-Similar to `GIFT_adaptive_sampling_synthetic/`, but differs in the active learning strategy. Instead of adaptive sampling, this folder contains implementations where the active learning loop uses **random samples as augmentation** at each learning stage.
-
-**Key Files:**
-- `CDM_rand_synthetic.py` - Main script with random sampling strategy
-- `run_rand_synthetic.slurm` - SLURM submission script
-- `gift_pflotran_template.in` - PFLOTRAN template
-- `gift_pflotran_template_dbase.h5` - Database template
-
-**Output Directories:**
-- `GIFT_CDM_Results/` - Results with random sampling strategy
-- `Inverted_field_simulations/` - Inversion results
-- `pflotran_input_files/` - Generated configurations
-
-### 4. `GIFT_uniform_synthetic/`
-
-**Purpose:** Initial training dataset with Sobol sampling
-
-This folder contains the **initial training dataset** with samples drawn using Sobol sampling (quasi-random, low-discrepancy sampling). This represents the baseline or starting point for the active learning experiments.
-
-**Key Files:**
-- `Paralell_Sobol_300.py` - Script to generate Sobol samples in parallel
-- `run_GIFT_Uniform.slurm` - SLURM submission script
-- `gift_pflotran_template.in` - PFLOTRAN template
-- `gift_pflotran_template_dbase.h5` - Database template
-
-**Output Directories:**
-- `Sobol_simulated_data_300/` - Generated Sobol samples and corresponding simulation data
 
 ## Shared Files
 
