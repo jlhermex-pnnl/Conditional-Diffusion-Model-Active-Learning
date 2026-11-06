@@ -1,0 +1,626 @@
+#Description: GIFT tank simulation use units = meters
+SIMULATION
+  SIMULATION_TYPE SUBSURFACE
+  PROCESS_MODELS
+    SUBSURFACE_FLOW flow
+      MODE RICHARDS
+    /
+    
+    SUBSURFACE_TRANSPORT transport
+      MODE GIRT
+    /
+    
+    SUBSURFACE_GEOPHYSICS geophysics
+      MODE ERT
+      OPTIONS
+        NO_ANALYTICAL_POTENTIAL      
+        WATER_CONDUCTIVITY   5.2500e-02  # pore water conductivity, measured
+        TRACER_WATER_CONDUCTIVITY 0.17 #  tracer conductivity S/m, measured
+        MAX_TRACER_CONCENTRATION 1.d0 # maximum anywhere in the model look up units
+        #COMPUTE_JACOBIAN
+        SURVEY_TIMES h 0.001 2. 4. 6. 8. 10. 12. 14. 16. 18. 20. 22. 24. 26. 28. 30. 32. 34. 36. 40. 44. 48. 52. 56. 60. 64. 68. 72. 76. 80. 84. 88. 92. 96. 100. 104. 108. 112. 116. 120. 124. 128. 132. 136. 140. 144. 
+        OUTPUT_ALL_SURVEYS
+      /
+    /
+    
+  /
+  CHECKPOINT
+  # this generates a restart file at the end of the simulation
+  /
+  #RESTART flow_injection.chk RESET_TO_TIME_ZERO
+END
+
+SUBSURFACE
+
+#=========================== numerical methods ================================
+NUMERICAL_METHODS FLOW
+
+  NEWTON_SOLVER
+    ITOL_UPDATE 1.d0     ! Convergences with max change in pressure is 1 Pa.
+  /
+
+END
+
+NUMERICAL_METHODS GEOPHYSICS
+  LINEAR_SOLVER
+    SOLVER BCGS
+    PC_TYPE BLOCK_JACOBI
+    ATOL 1.d-12
+  /
+END
+
+#=========================== Geophysics survey  ================================
+SURVEY
+  FILE_NAME gift_survey.srv
+  FORMAT E4D_SRV
+END  
+
+
+#=========================== chemistry ========================================
+CHEMISTRY
+  PRIMARY_SPECIES
+    Tracer
+    Tracer2
+  /
+  OUTPUT
+    TOTAL
+    ALL
+  /
+END
+
+#=========================== discretization ===================================
+GRID
+  TYPE STRUCTURED
+  NXYZ 100 50 75  
+  BOUNDS
+    0.d0 0.d0 0.d0 
+    1.9304 0.7366 0.9652
+  /
+  
+END
+
+#=========================== fluid properties =================================
+FLUID_PROPERTY
+  DIFFUSION_COEFFICIENT 1.d-9
+END
+
+#=========================== material properties ==============================
+MATERIAL_PROPERTY soil1 #30 Sand
+  ID 1
+  ARCHIE_CEMENTATION_EXPONENT 1.3d0
+  ARCHIE_SATURATION_EXPONENT 2.d0
+  ARCHIE_TORTUOSITY_CONSTANT 1.d0
+  CHARACTERISTIC_CURVES cc1   
+  POROSITY 0.40d0
+  TORTUOSITY 0.5d0
+  SURFACE_ELECTRICAL_CONDUCTIVITY 0.0005  
+  PERMEABILITY
+    PERM_X 4.06d-11
+    PERM_Y 4.06d-11
+    PERM_Z 4.06d-11
+  /
+  EXTERNAL_FILE ./soil_compressibility.txt
+END
+
+
+MATERIAL_PROPERTY soil2  #70 sand
+  ID 2
+  ARCHIE_CEMENTATION_EXPONENT 1.3d0
+  ARCHIE_SATURATION_EXPONENT 2.d0
+  ARCHIE_TORTUOSITY_CONSTANT 1.d0
+  CHARACTERISTIC_CURVES cc1   
+  POROSITY 0.40d0
+  TORTUOSITY 0.5d0
+  SURFACE_ELECTRICAL_CONDUCTIVITY 0.0005  
+  PERMEABILITY
+    PERM_X 2.164d-12
+    PERM_Y 2.164d-12
+    PERM_Z 2.164d-12
+  /
+  EXTERNAL_FILE ./soil_compressibility.txt
+END
+
+MATERIAL_PROPERTY soil3  #16 sand
+  ID 3
+  ARCHIE_CEMENTATION_EXPONENT 1.3d0
+  ARCHIE_SATURATION_EXPONENT 2.d0
+  ARCHIE_TORTUOSITY_CONSTANT 1.d0
+  CHARACTERISTIC_CURVES cc1  
+  POROSITY 0.40d0
+  TORTUOSITY 0.5d0
+  SURFACE_ELECTRICAL_CONDUCTIVITY 0.0005  
+  PERMEABILITY
+    PERM_X 7.15d-11
+    PERM_Y 7.15d-11
+    PERM_Z 7.15d-11
+  /
+  EXTERNAL_FILE ./soil_compressibility.txt
+END
+
+#=========================== saturation functions =============================
+CHARACTERISTIC_CURVES cc1
+  SATURATION_FUNCTION VAN_GENUCHTEN
+    ALPHA  1.d-4
+    M 0.5d0
+    LIQUID_RESIDUAL_SATURATION 0.1d0
+    MAX_CAPILLARY_PRESSURE 1.d8
+  /
+  PERMEABILITY_FUNCTION MUALEM_VG_LIQ
+    M 0.5d0
+    LIQUID_RESIDUAL_SATURATION 0.1d0
+  /
+END
+
+#=========================== output options ===================================
+OUTPUT
+  #SNAPSHOT_FILE
+    #PERIODIC TIME 0.10 h between 0. h and 2. h
+    #PERIODIC TIME .5 h between .5 h and 100. h
+
+    #FORMAT TECPLOT BLOCK
+    #FORMAT HDF5
+    #PRINT_COLUMN_IDS
+    #VARIABLES
+    #  LIQUID_PRESSURE
+    #  #LIQUID_SATURATION
+    #  #MATERIAL_ID_KLUDGE_FOR_VISIT
+    #  #SOLUTE_CONCENTRATION 
+    #  ELECTRICAL_CONDUCTIVITY
+    #  #ELECTRICAL_POTENTIAL 2
+    #  #ELECTRICAL_JACOBIAN 1
+      
+   # /
+  #/
+ 
+  OBSERVATION_FILE
+    #TIMES h 2.7778d-4 1.d0 2.d0 3.d0 4.d0 5.d0 6.d0 # 2.778d-4 ~= 1 second
+    #PERIODIC TIME 1.0 h between .5 h and 12. h
+    PERIODIC TIME 2.0 h between 0.0 h and 200 h
+    VARIABLES
+    	ELECTRICAL_CONDUCTIVITY
+    	LIQUID_PRESSURE
+	
+    	/
+  /
+  MASS_BALANCE_FILE
+  	PERIODIC TIME 12.0 h between 0.0 h and 200 h	
+  /
+  VELOCITY_AT_CENTER
+ 
+END
+
+#=========================== times ============================================
+TIME
+  FINAL_TIME 144.d0 h
+  INITIAL_TIMESTEP_SIZE 0.05 h
+  MAXIMUM_TIMESTEP_SIZE 0.50 h       
+END
+
+#=========================== regions ==========================================
+# need a region for all boundary conditions
+# front, back  - top, sides (no flow, don't need to specify)/ top will be computed. 2 constant head conditions on east and west boundaries
+# for ERT need all sides and bottom boundary condition
+
+REGION all
+  COORDINATES
+    0.d0    0.d0    0.d0
+    1.9304 0.7366 0.9652
+  /
+END
+
+
+REGION layer1
+  COORDINATES
+    0.d0    0.d0    0.d0
+    1.9304 0.7366 0.5588
+  /
+END
+
+REGION layer2
+  COORDINATES
+    0.d0    0.d0  0.5588
+    1.9304 0.7366 0.6096
+  /
+END
+
+REGION layer3
+  COORDINATES
+    0.d0    0.d0    0.6096
+    1.9304 0.7366 0.9652
+  /
+END
+
+
+REGION west 
+  COORDINATES
+    0.d0 0.d0    0.d0
+    0.d0 0.7366 0.9652
+    
+  /
+  FACE WEST
+END
+
+REGION east
+  COORDINATES
+    1.9304 0.d0    0.d0
+    1.9304 0.7366 0.9652
+  /
+  FACE EAST
+END
+
+REGION side_south
+  COORDINATES
+    0       0    0
+    1.9304  0    0.9652
+  /
+  #FACE SIDE_SOUTH
+END
+
+REGION side_north
+  COORDINATES
+    0       0.7366    0
+    1.9304  0.7366    0.9652
+  /
+  #FACE SIDE_NORTH
+END
+
+REGION bottom
+  COORDINATES
+    0       0         0
+    1.9304  0.7366    0
+  /
+  #FACE BOTTOM
+END
+
+
+REGION injection_well
+  COORDINATES 
+    0.31 0.3733 0.3
+    0.30 0.3633 0.7
+  /
+END
+
+REGION W1_1
+  COORDINATE 0.158 0.157 0.340 # well1 bottom pt
+END
+REGION W1_2
+  COORDINATE 0.158 0.157 0.594 # well1 mid pt
+END
+REGION W1_3
+  COORDINATE 0.158 0.157 0.849 # well1 top pt
+END
+
+REGION W2_1
+  COORDINATE 0.158 0.584 0.335 # well2 bottom pt
+END
+REGION W2_2
+  COORDINATE 0.158 0.584 0.588 # well2 mid pt
+END
+REGION W2_3
+  COORDINATE 0.158 0.584 0.847 # well2 top pt
+END
+
+REGION W3_1
+  COORDINATE 0.613 0.161 0.337 # well3 bottom pt
+END
+REGION W3_2
+  COORDINATE 0.613 0.161 0.593 # well3 mid pt
+END
+REGION W3_3
+  COORDINATE 0.613 0.161 0.847 # well3 top pt
+END
+
+REGION W4_1
+  COORDINATE 0.613 0.584 0.338 # well4 bottom pt
+END
+REGION W4_2
+  COORDINATE 0.613 0.584 0.594 # well4 mid pt
+END
+REGION W4_3
+  COORDINATE 0.613 0.584 0.847 # well4 top pt
+END
+
+REGION W5_1
+  COORDINATE 1.067 0.151 0.338 # well5 bottom pt
+END
+REGION W5_2
+  COORDINATE 1.067 0.151 0.594 # well5 mid pt
+END
+REGION W5_3
+  COORDINATE 1.067 0.151 0.847 # well5 top pt
+END
+
+REGION W6_1
+  COORDINATE 1.067 0.584 0.338 # well6 bottom pt
+END
+REGION W6_2
+  COORDINATE 1.067 0.584 0.591 # well6 mid pt
+END
+REGION W6_3
+  COORDINATE 1.067 0.584 0.844 # well6 top pt
+END
+
+REGION W7_1
+  COORDINATE 1.530 0.151 0.338 # well7 bottom pt
+END
+REGION W7_2
+  COORDINATE 1.530 0.151 0.591 # well7 mid pt
+END
+REGION W7_3
+  COORDINATE 1.530 0.151 0.844 # well7 top pt
+END
+
+REGION W8_1
+  COORDINATE 1.530 0.584 0.332 # well8 bottom pt
+END
+REGION W8_2
+  COORDINATE 1.530 0.584 0.588 # well8 mid pt
+END
+REGION W8_3
+  COORDINATE 1.530 0.584 0.864 # well8 top pt
+END
+
+REGION W9_1
+  COORDINATE .308 0.368 0.338 # well7 bottom pt
+END
+REGION W9_2
+  COORDINATE .308 0.368 0.594 # well7 mid pt
+END
+REGION W9_3
+  COORDINATE .308 0.368 0.844 # well7 top pt
+END
+
+
+#=========================== observation points =============================== 
+OBSERVATION
+  REGION W1_1
+END
+OBSERVATION
+  REGION W1_2
+END
+OBSERVATION
+  REGION W1_3
+END
+
+OBSERVATION
+  REGION W2_1
+END
+OBSERVATION
+  REGION W2_2
+END
+OBSERVATION
+  REGION W2_3
+END
+
+OBSERVATION
+  REGION W3_1
+END
+OBSERVATION
+  REGION W3_2
+END
+OBSERVATION
+  REGION W3_3
+END
+
+OBSERVATION
+  REGION W4_1
+END
+OBSERVATION
+  REGION W4_2
+END
+OBSERVATION
+  REGION W4_3
+END
+
+OBSERVATION
+  REGION W5_1
+END
+OBSERVATION
+  REGION W5_2
+END
+OBSERVATION
+  REGION W5_3
+END
+
+OBSERVATION
+  REGION W6_1
+END
+OBSERVATION
+  REGION W6_2
+END
+OBSERVATION
+  REGION W6_3
+END
+
+OBSERVATION
+  REGION W7_1
+END
+OBSERVATION
+  REGION W7_2
+END
+OBSERVATION
+  REGION W7_3
+END
+
+OBSERVATION
+  REGION W8_1
+END
+OBSERVATION
+  REGION W8_2
+END
+OBSERVATION
+  REGION W8_3
+END
+
+OBSERVATION
+  REGION W9_1
+END
+OBSERVATION
+  REGION W9_2
+END
+OBSERVATION
+  REGION W9_3
+END
+
+#=========================== flow conditions ==================================
+# not specified with a condition or boundary yet, couple later
+# flow is west to east!!!
+
+FLOW_CONDITION initial
+  TYPE
+    LIQUID_PRESSURE HYDROSTATIC
+  /
+  INTERPOLATION LINEAR
+  DATUM 0.d0 0.d0 0.892 
+  # boundary condition is 4 inches below (34 inches) top of tank
+  LIQUID_PRESSURE 101325.d0
+END
+
+FLOW_CONDITION west
+  TYPE
+    LIQUID_PRESSURE HYDROSTATIC
+  /
+  INTERPOLATION LINEAR
+  DATUM 0.d0 0.d0 0.892 
+  # same datum as initial condition
+  LIQUID_PRESSURE 101325.d0
+END
+
+FLOW_CONDITION east 
+  TYPE
+    LIQUID_PRESSURE HYDROSTATIC
+  /
+  INTERPOLATION LINEAR
+  DATUM 1.9304 0.d0 0.885 
+  # 30 inches to create gradient (flow from west to east)
+  LIQUID_PRESSURE 101325.d0
+END
+
+FLOW_CONDITION injection
+  TYPE
+    RATE SCALED_VOLUMETRIC_RATE PERM
+  /
+  SYNC_TIMESTEP_WITH_UPDATE
+  RATE LIST
+  	TIME_UNITS h
+  	DATA_UNITS L/min
+  0. 0.
+  0.5 0.025
+  12. 0.
+  /
+END
+
+#=========================== transport conditions ============================= not yet
+TRANSPORT_CONDITION initial
+  TYPE DIRICHLET_ZERO_GRADIENT
+  CONSTRAINT initial
+    CONCENTRATIONS
+      Tracer  1.d-10 T
+      Tracer2 1.d-10 T
+    /
+  /
+END
+
+TRANSPORT_CONDITION west
+  TYPE DIRICHLET_ZERO_GRADIENT
+  CONSTRAINT west
+    CONCENTRATIONS
+      Tracer  1.d-10 T
+      Tracer2 1.d-10 T
+    /
+  /
+END
+
+TRANSPORT_CONDITION injection
+  TYPE DIRICHLET_ZERO_GRADIENT
+  CONSTRAINT injection
+    CONCENTRATIONS
+      Tracer  1.d0   T
+      Tracer2 1.d-10 T
+    /
+  /
+END
+
+
+
+#=========================== geophysics conditions =============================
+GEOPHYSICS_CONDITION boundary_potential
+  TYPE DIRICHLET
+END
+
+GEOPHYSICS_CONDITION zero_flux
+  TYPE ZERO_GRADIENT
+END
+
+#=========================== condition couplers ===============================
+# initial condition
+INITIAL_CONDITION
+  FLOW_CONDITION initial
+  TRANSPORT_CONDITION initial
+  GEOPHYSICS_CONDITION zero_flux
+  REGION all
+END
+
+# west boundary condition
+BOUNDARY_CONDITION west
+  FLOW_CONDITION west
+  TRANSPORT_CONDITION west
+  GEOPHYSICS_CONDITION zero_flux
+  REGION west
+END
+
+# east boundary condition
+BOUNDARY_CONDITION east
+  FLOW_CONDITION east
+  TRANSPORT_CONDITION initial
+  GEOPHYSICS_CONDITION zero_flux
+  REGION east
+END
+
+SKIP
+# side_south boundary condition
+BOUNDARY_CONDITION side_south
+  GEOPHYSICS_CONDITION zero_flux
+  REGION side_south
+END
+
+# side_north boundary condition
+BOUNDARY_CONDITION side_north
+  GEOPHYSICS_CONDITION zero_flux
+  REGION side_north
+END
+
+# bottom boundary condition
+BOUNDARY_CONDITION bottom
+  GEOPHYSICS_CONDITION zero_flux
+  REGION bottom
+END
+NOSKIP
+
+# source 
+SOURCE_SINK injection_well
+  FLOW_CONDITION injection
+  TRANSPORT_CONDITION injection
+  REGION W9_2
+END
+
+
+#=========================== stratigraphy couplers ============================
+STRATA
+  REGION layer1
+  MATERIAL soil1
+END
+
+
+STRATA
+  REGION layer2
+  MATERIAL soil2
+END
+
+STRATA
+  REGION layer3
+  MATERIAL soil3
+END
+
+
+END_SUBSURFACE
